@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: military-screening
+    env: docker
+    plan: free
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 8000
+      # Set these in the Render dashboard or here with real values:
+      # - key: MODEL_ARCHIVE_URL
+      #   value: https://your-bucket/model.7z
+      # - key: MODEL_SHA256
+      #   value: <sha256-of-archive>
+      # - key: MODEL_ARCHIVE_PASSWORD
+      #   value: <optional-password>
