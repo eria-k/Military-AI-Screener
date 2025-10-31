@@ -19,14 +19,14 @@ sha256sum_check() {
   fi
 }
 
-download_file_py() {
+download_file() {
   local url="$1"
   local out="$2"
-  python - <<PY
-import urllib.request, sys
-url = sys.argv[1]
-out = sys.argv[2]
-print("Downloading:", url)
+  log "Downloading: $url"
+  DL_URL="$url" DL_OUT="$out" python - <<'PY'
+import os, urllib.request, sys
+url = os.environ['DL_URL']
+out = os.environ['DL_OUT']
 urllib.request.urlretrieve(url, out)
 print("Saved to:", out)
 PY
@@ -50,7 +50,7 @@ if [ ! -f "$MODEL_PATH" ]; then
   if [ -n "${MODEL_ARCHIVE_URL:-}" ]; then
     ARCHIVE_PATH="/app/model.7z"
     log "Model not found. Downloading 7z archive from: $MODEL_ARCHIVE_URL"
-    download_file_py "$MODEL_ARCHIVE_URL" "$ARCHIVE_PATH"
+    download_file "$MODEL_ARCHIVE_URL" "$ARCHIVE_PATH"
     sha256sum_check "$ARCHIVE_PATH"
     log "Extracting archive to /app ..."
     if [ -n "${MODEL_ARCHIVE_PASSWORD:-}" ]; then
@@ -71,11 +71,10 @@ if [ ! -f "$MODEL_PATH" ]; then
     fi
   elif [ -n "${MODEL_URL:-}" ]; then
     log "Model not found. Downloading raw model from: $MODEL_URL"
-    download_file_py "$MODEL_URL" "$MODEL_PATH"
+    download_file "$MODEL_URL" "$MODEL_PATH"
     sha256sum_check "$MODEL_PATH"
   fi
 fi
 
 log "Starting gunicorn on port ${PORT:-8000}..."
 exec gunicorn --bind 0.0.0.0:${PORT:-8000} --workers 2 --threads 4 --timeout 120 app:app
-
